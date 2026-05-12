@@ -3,11 +3,23 @@ from ....confirm import request_confirmation
 
 
 class CommitCommand(BaseCommand):
+    """Stage all changes and create a commit in one step.
+
+    Runs git add . followed by git commit -m, so the user doesn't need to
+    stage files manually before committing. Requires -m and either --dry-run
+    or --force.
+    """
+
     def __init__(self, service, prompt_fn=input):
+        """Args:
+            service: GitService instance.
+            prompt_fn: Injectable input function for testing without stdin.
+        """
         super().__init__(service)
         self.prompt_fn = prompt_fn
 
     def run(self, args) -> dict:
+        """Validate flags, then route to dry-run or confirmed execution."""
         if not args.message:
             return {
                 "command": "commit",
@@ -36,6 +48,11 @@ class CommitCommand(BaseCommand):
         return self._run(args.message)
 
     def _dry_run(self) -> dict:
+        """Show all files that would be staged and committed without touching the repo.
+
+        Uses git status --porcelain to capture both tracked and untracked changes,
+        mirroring what git add . would pick up.
+        """
         result = self.service.run_git("status", "--porcelain")
         if result["exit_code"] != 0:
             return {"command": "commit", "status": "error", "message": result["stderr"]}
@@ -49,6 +66,7 @@ class CommitCommand(BaseCommand):
         }
 
     def _run(self, message) -> dict:
+        """Stage everything with git add . then commit with the given message."""
         add_result = self.service.run_git("add", ".")
         if add_result["exit_code"] != 0:
             return {"command": "commit", "status": "error", "message": add_result["stderr"]}
