@@ -49,16 +49,25 @@ working_tree:
   files:
     - path: notes.txt
       state: untracked
+staged_files:
+  - src/app.js
+unstaged_files:
+  - README.md
+untracked_files:
+  - notes.txt
 ```
+
+`staged_files`, `unstaged_files`, `untracked_files` are omitted when empty.
 
 ---
 
 ### clean
-Remove untracked files. Requires `--dry-run` or `--force`. `--force` triggers confirmation prompt.
+Remove untracked files. Requires `--dry-run`, `--force`, or `--yes`. Both `--force` and `--yes` trigger the confirmation prompt.
 
 ```
 gitwrap clean --dry-run
 gitwrap clean --force
+gitwrap clean --yes       # alias for --force
 ```
 
 Output (`dry_run`):

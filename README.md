@@ -18,7 +18,7 @@ See [INSTALL.md](INSTALL.md) for full setup instructions.
 ---
 
 ### status
-
+    
 Show branch, unpushed commits with files changed, and working tree state.
 
 ```bash
@@ -42,7 +42,15 @@ working_tree:
   files:
     - path: notes.txt
       state: untracked
+staged_files:
+  - src/app.js
+unstaged_files:
+  - README.md
+untracked_files:
+  - notes.txt
 ```
+
+`staged_files`, `unstaged_files`, and `untracked_files` are omitted when empty.
 
 **State values:** `added` `modified` `deleted` `renamed` `untracked`
 
@@ -50,11 +58,12 @@ working_tree:
 
 ### clean
 
-Remove untracked files. Requires `--dry-run` or `--force`.
+Remove untracked files. Requires `--dry-run`, `--force`, or `--yes`.
 
 ```bash
 gitwrap clean --dry-run   # show files that would be removed
 gitwrap clean --force     # confirm with Pokemon word, then delete
+gitwrap clean --yes       # alias for --force
 ```
 
 ```yaml
