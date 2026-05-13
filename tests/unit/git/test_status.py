@@ -22,7 +22,7 @@ def err(stderr="fatal: error"):
 
 
 def test_clean_repo_no_unpushed():
-    service = make_service([ok("main"), ok("0"), ok("0"), ok(""), ok("")])
+    service = make_service([ok("main"), ok("0"), ok("0"), ok("")])
     result = StatusCommand(service).run(None)
     assert result["status"] == "ok"
     assert result["branch"] == "main"
@@ -66,6 +66,33 @@ def test_working_tree_dirty():
     assert wt["clean"] is False
     assert {"path": "src/main.py", "state": "modified"} in wt["files"]
     assert {"path": "newfile.txt", "state": "untracked"} in wt["files"]
+    assert result["unstaged_files"] == ["src/main.py"]
+    assert result["untracked_files"] == ["newfile.txt"]
+    assert "staged_files" not in result
+
+
+def test_staged_files():
+    service = make_service([ok("main"), ok("0"), ok("0"), ok("M  src/app.py\nA  new.py")])
+    result = StatusCommand(service).run(None)
+    assert result["staged_files"] == ["src/app.py", "new.py"]
+    assert "unstaged_files" not in result
+    assert "untracked_files" not in result
+
+
+def test_mixed_staged_and_unstaged():
+    # MM = staged modified + unstaged modified
+    service = make_service([ok("main"), ok("0"), ok("0"), ok("MM src/app.py")])
+    result = StatusCommand(service).run(None)
+    assert result["staged_files"] == ["src/app.py"]
+    assert result["unstaged_files"] == ["src/app.py"]
+
+
+def test_clean_repo_omits_file_lists():
+    service = make_service([ok("main"), ok("0"), ok("0"), ok("")])
+    result = StatusCommand(service).run(None)
+    assert "staged_files" not in result
+    assert "unstaged_files" not in result
+    assert "untracked_files" not in result
 
 
 def test_branch_error_returns_error():

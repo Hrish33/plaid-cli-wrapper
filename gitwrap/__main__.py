@@ -32,7 +32,8 @@ def build_git_parser(subparsers):
 
     clean_parser = subparsers.add_parser("clean", help="Remove untracked files")
     clean_parser.add_argument("--dry-run", action="store_true", help="Show what would be removed")
-    clean_parser.add_argument("--force", action="store_true", help="Actually remove files")
+    clean_parser.add_argument("--force", action="store_true", help="Actually remove files (with confirmation)")
+    clean_parser.add_argument("--yes", dest="force", action="store_true", help="Actually remove files (alias for --force)")
 
     reset_parser = subparsers.add_parser("reset", help="Reset working tree to HEAD")
     reset_parser.add_argument("--dry-run", action="store_true", help="Show what would be reset")

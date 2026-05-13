@@ -12,9 +12,9 @@ def make_service(stdout="", exit_code=0, stderr=""):
     return service
 
 
-def make_args(force=False, dry_run=False):
+def make_args(force=False, dry_run=False, yes=False):
     args = MagicMock()
-    args.force = force
+    args.force = force or yes  # --yes is aliased to force via argparse dest
     args.dry_run = dry_run
     return args
 
@@ -74,3 +74,13 @@ def test_git_error_propagates():
     with patch("random.choice", return_value=word):
         result = make_clean(service, word).run(make_args(force=True))
     assert result["status"] == "error"
+
+
+def test_yes_flag_behaves_like_force():
+    word = POKEMON[0]
+    stdout = "Removing foo.txt"
+    service = make_service(stdout=stdout)
+    with patch("random.choice", return_value=word):
+        result = make_clean(service, word).run(make_args(yes=True))
+    service.run_git.assert_called_once_with("clean", "-fd")
+    assert result["status"] == "ok"

@@ -35,9 +35,9 @@ class StatusCommand(BaseCommand):
 
         unpushed, unpulled = self._sync_counts()
         local_commits = self._local_commits(unpushed)
-        working_tree = self._working_tree()
+        working_tree, staged_files, unstaged_files, untracked_files = self._working_tree()
 
-        return {
+        result = {
             "command": "status",
             "status": "ok",
             "branch": branch,
@@ -46,6 +46,14 @@ class StatusCommand(BaseCommand):
             "local_commits": local_commits,
             "working_tree": working_tree,
         }
+        # Only include non-empty file lists (per spec)
+        if staged_files:
+            result["staged_files"] = staged_files
+        if unstaged_files:
+            result["unstaged_files"] = unstaged_files
+        if untracked_files:
+            result["untracked_files"] = untracked_files
+        return result
 
     def _branch(self):
         """Return the current branch name, or an error dict on failure."""
@@ -96,19 +104,27 @@ class StatusCommand(BaseCommand):
         return files
 
     def _working_tree(self):
-        """Return working tree state: whether it's clean and a list of changed files.
+        """Return (working_tree_dict, staged_files, unstaged_files, untracked_files).
 
-        Uses --porcelain for stable, script-friendly output format.
+        Parses --porcelain once to populate all four values. The first column (X)
+        is the index/staged status; the second (Y) is the working tree status.
         """
         result = self.service.run_git("status", "--porcelain")
         if result["exit_code"] != 0:
-            return {"clean": False, "files": []}
+            return {"clean": False, "files": []}, [], [], []
 
-        files = []
+        staged, unstaged, untracked, all_files = [], [], [], []
         for line in result["stdout"].splitlines():
-            if line.strip():
-                raw_state = line[:2].strip()
-                path = line[3:].strip()
-                files.append({"path": path, "state": _map_state(raw_state)})
+            if not line.strip():
+                continue
+            x, y, path = line[0], line[1], line[3:].strip()
+            if x == "?" and y == "?":
+                untracked.append(path)
+            else:
+                if x != " ":
+                    staged.append(path)
+                if y != " ":
+                    unstaged.append(path)
+            all_files.append({"path": path, "state": _map_state(line[:2].strip())})
 
-        return {"clean": len(files) == 0, "files": files}
+        return {"clean": len(all_files) == 0, "files": all_files}, staged, unstaged, untracked
