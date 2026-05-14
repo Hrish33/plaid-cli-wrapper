@@ -16,11 +16,8 @@ def detect_service() -> str:
 
 def build_git_parser(subparsers):
     from .services.git.service import GitService
-    from .services.git.commands.status import StatusCommand
-    from .services.git.commands.clean import CleanCommand
-    from .services.git.commands.reset import ResetCommand
-    from .services.git.commands.push import PushCommand
-    from .services.git.commands.commit import CommitCommand
+    from .services.git import commands  # triggers all @command decorators
+    from .core.registry import get_commands
 
     service = GitService()
 
@@ -28,33 +25,12 @@ def build_git_parser(subparsers):
         print(render({"command": None, "status": "error", "message": "not inside a git repository"}), end="")
         sys.exit(1)
 
-    subparsers.add_parser("status", help="Show working tree status as YAML")
+    # Each command class registers its own subparser and flags
+    commands = get_commands()
+    for cmd_class in commands.values():
+        cmd_class.register(subparsers)
 
-    clean_parser = subparsers.add_parser("clean", help="Remove untracked files")
-    clean_parser.add_argument("--dry-run", action="store_true", help="Show what would be removed")
-    clean_parser.add_argument("--force", action="store_true", help="Actually remove files (with Pokemon confirmation)")
-    clean_parser.add_argument("--yes", action="store_true", help="Actually remove files (skip prompt)")
-
-    reset_parser = subparsers.add_parser("reset", help="Reset working tree to HEAD")
-    reset_parser.add_argument("--dry-run", action="store_true", help="Show what would be reset")
-    reset_parser.add_argument("--force", action="store_true", help="Actually reset to HEAD")
-
-    push_parser = subparsers.add_parser("push", help="Push to remote")
-    push_parser.add_argument("--dry-run", action="store_true", help="Simulate push without sending")
-    push_parser.add_argument("--force", action="store_true", help="Force push")
-
-    commit_parser = subparsers.add_parser("commit", help="Stage all changes and commit")
-    commit_parser.add_argument("-m", dest="message", help="Commit message")
-    commit_parser.add_argument("--dry-run", action="store_true", help="Show what would be committed")
-    commit_parser.add_argument("--force", action="store_true", help="Actually stage and commit")
-
-    return service, {
-        "status": StatusCommand,
-        "clean": CleanCommand,
-        "reset": ResetCommand,
-        "push": PushCommand,
-        "commit": CommitCommand,
-    }
+    return service, commands
 
 
 STUBS = {"docker", "kubectl"}

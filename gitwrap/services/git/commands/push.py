@@ -1,5 +1,9 @@
 from ....core.base_command import BaseCommand
+from ....core.registry import command
 from ....utils.confirm import request_confirmation
+
+
+@command("push")
 
 
 class PushCommand(BaseCommand):
@@ -10,6 +14,12 @@ class PushCommand(BaseCommand):
     shared remote is consequential. --dry-run skips the prompt and simulates
     the push without sending anything.
     """
+
+    @classmethod
+    def register(cls, subparsers):
+        p = subparsers.add_parser("push", help="Push to remote")
+        p.add_argument("--dry-run", action="store_true", help="Simulate push without sending")
+        p.add_argument("--force", action="store_true", help="Force push")
 
     def __init__(self, service, prompt_fn=input):
         """Args:

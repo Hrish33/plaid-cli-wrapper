@@ -1,5 +1,9 @@
 from ....core.base_command import BaseCommand
+from ....core.registry import command
 from ....utils.confirm import request_confirmation
+
+
+@command("reset")
 
 
 class ResetCommand(BaseCommand):
@@ -8,6 +12,12 @@ class ResetCommand(BaseCommand):
     Only affects files git already tracks — untracked files are untouched.
     Use CleanCommand to remove untracked files. Requires --dry-run or --force.
     """
+
+    @classmethod
+    def register(cls, subparsers):
+        p = subparsers.add_parser("reset", help="Reset working tree to HEAD")
+        p.add_argument("--dry-run", action="store_true", help="Show what would be reset")
+        p.add_argument("--force", action="store_true", help="Actually reset to HEAD")
 
     def __init__(self, service, prompt_fn=input):
         """Args:

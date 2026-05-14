@@ -1,5 +1,9 @@
 from ....core.base_command import BaseCommand
+from ....core.registry import command
 from ....utils.confirm import request_confirmation
+
+
+@command("clean")
 
 
 class CleanCommand(BaseCommand):
@@ -9,6 +13,13 @@ class CleanCommand(BaseCommand):
     --force (Pokemon confirmation then execute). Without one of these flags the
     command errors immediately without touching the filesystem.
     """
+
+    @classmethod
+    def register(cls, subparsers):
+        p = subparsers.add_parser("clean", help="Remove untracked files")
+        p.add_argument("--dry-run", action="store_true", help="Show what would be removed")
+        p.add_argument("--force", action="store_true", help="Actually remove files (with Pokemon confirmation)")
+        p.add_argument("--yes", action="store_true", help="Actually remove files (skip prompt)")
 
     def __init__(self, service, prompt_fn=input):
         """Args:

@@ -1,5 +1,9 @@
 from ....core.base_command import BaseCommand
+from ....core.registry import command
 from ....utils.confirm import request_confirmation
+
+
+@command("commit")
 
 
 class CommitCommand(BaseCommand):
@@ -9,6 +13,13 @@ class CommitCommand(BaseCommand):
     stage files manually before committing. Requires -m and either --dry-run
     or --force.
     """
+
+    @classmethod
+    def register(cls, subparsers):
+        p = subparsers.add_parser("commit", help="Stage all changes and commit")
+        p.add_argument("-m", dest="message", help="Commit message")
+        p.add_argument("--dry-run", action="store_true", help="Show what would be committed")
+        p.add_argument("--force", action="store_true", help="Actually stage and commit")
 
     def __init__(self, service, prompt_fn=input):
         """Args:

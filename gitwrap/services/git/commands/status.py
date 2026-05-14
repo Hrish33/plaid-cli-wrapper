@@ -1,4 +1,5 @@
 from ....core.base_command import BaseCommand
+from ....core.registry import command
 
 # Maps git's single-character porcelain state codes to human-readable strings.
 STATE_MAP = {
@@ -20,12 +21,17 @@ def _map_state(raw: str) -> str:
     return STATE_MAP.get(raw[0], raw.lower())
 
 
+@command("status")
 class StatusCommand(BaseCommand):
     """Show a full snapshot of the repo: branch, unpushed commits, and working tree state.
 
     Combines output from several git commands into a single YAML-friendly dict
     so callers get everything they need in one shot.
     """
+
+    @classmethod
+    def register(cls, subparsers):
+        subparsers.add_parser("status", help="Show working tree status as YAML")
 
     def run(self, args) -> dict:
         """Build and return the full status snapshot."""
