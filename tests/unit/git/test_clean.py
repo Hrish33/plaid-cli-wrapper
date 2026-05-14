@@ -3,7 +3,7 @@
 
 from unittest.mock import MagicMock, patch
 from gitwrap.services.git.commands.clean import CleanCommand
-from gitwrap.confirm import POKEMON
+from gitwrap.utils.confirm import POKEMON
 
 
 def make_service(stdout="", exit_code=0, stderr=""):
@@ -14,8 +14,9 @@ def make_service(stdout="", exit_code=0, stderr=""):
 
 def make_args(force=False, dry_run=False, yes=False):
     args = MagicMock()
-    args.force = force or yes  # --yes is aliased to force via argparse dest
+    args.force = force
     args.dry_run = dry_run
+    args.yes = yes
     return args
 
 
@@ -76,11 +77,9 @@ def test_git_error_propagates():
     assert result["status"] == "error"
 
 
-def test_yes_flag_behaves_like_force():
-    word = POKEMON[0]
+def test_yes_flag_skips_confirmation():
     stdout = "Removing foo.txt"
     service = make_service(stdout=stdout)
-    with patch("random.choice", return_value=word):
-        result = make_clean(service, word).run(make_args(yes=True))
+    result = CleanCommand(service).run(make_args(yes=True))
     service.run_git.assert_called_once_with("clean", "-fd")
     assert result["status"] == "ok"

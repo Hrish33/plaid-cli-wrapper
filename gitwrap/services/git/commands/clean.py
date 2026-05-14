@@ -1,13 +1,13 @@
-from .base_command import BaseCommand
-from ....confirm import request_confirmation
+from ....core.base_command import BaseCommand
+from ....utils.confirm import request_confirmation
 
 
 class CleanCommand(BaseCommand):
     """Remove untracked files from the working tree.
 
-    Requires either --dry-run (safe preview) or --force (destructive execution
-    gated behind a Pokemon confirmation prompt). Without one of these flags
-    the command errors immediately without touching the filesystem.
+    Requires --dry-run (preview), --yes (skip prompt, execute immediately), or
+    --force (Pokemon confirmation then execute). Without one of these flags the
+    command errors immediately without touching the filesystem.
     """
 
     def __init__(self, service, prompt_fn=input):
@@ -19,16 +19,20 @@ class CleanCommand(BaseCommand):
         self.prompt_fn = prompt_fn
 
     def run(self, args) -> dict:
-        """Route to dry-run or confirmed execution based on flags."""
-        if not args.force and not args.dry_run:
+        """Route to dry-run, prompt-skipped, or confirmed execution based on flags."""
+        yes = getattr(args, "yes", False)
+        if not args.force and not args.dry_run and not yes:
             return {
                 "command": "clean",
                 "status": "error",
-                "message": "destructive command requires --force or --dry-run",
+                "message": "destructive command requires --force, --yes, or --dry-run",
             }
 
         if args.dry_run:
             return self._dry_run()
+
+        if yes:
+            return self._run()
 
         confirmed, word, typed = request_confirmation("Remove untracked files", self.prompt_fn)
         if not confirmed:
@@ -49,11 +53,10 @@ class CleanCommand(BaseCommand):
         if result["exit_code"] != 0:
             return {"command": "clean", "status": "error", "message": result["stderr"]}
 
-        files = [
-            line.removeprefix("Would remove ").strip()
-            for line in result["stdout"].splitlines()
-            if line.startswith("Would remove")
-        ]
+        files = []
+        for line in result["stdout"].splitlines():
+            if line.startswith("Would remove "):
+                files.append(line.replace("Would remove ", "", 1).strip())
         return {
             "command": "clean",
             "status": "dry_run",
@@ -67,11 +70,10 @@ class CleanCommand(BaseCommand):
         if result["exit_code"] != 0:
             return {"command": "clean", "status": "error", "message": result["stderr"]}
 
-        files = [
-            line.removeprefix("Removing ").strip()
-            for line in result["stdout"].splitlines()
-            if line.startswith("Removing")
-        ]
+        files = []
+        for line in result["stdout"].splitlines():
+            if line.startswith("Removing "):
+                files.append(line.replace("Removing ", "", 1).strip())
         return {
             "command": "clean",
             "status": "ok",

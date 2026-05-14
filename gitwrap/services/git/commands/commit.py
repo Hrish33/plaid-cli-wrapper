@@ -1,5 +1,5 @@
-from .base_command import BaseCommand
-from ....confirm import request_confirmation
+from ....core.base_command import BaseCommand
+from ....utils.confirm import request_confirmation
 
 
 class CommitCommand(BaseCommand):
@@ -57,7 +57,10 @@ class CommitCommand(BaseCommand):
         if result["exit_code"] != 0:
             return {"command": "commit", "status": "error", "message": result["stderr"]}
 
-        files = [line[3:].strip() for line in result["stdout"].splitlines() if line.strip()]
+        files = []
+        for line in result["stdout"].splitlines():
+            if line.strip():
+                files.append(line[3:].strip())
         return {
             "command": "commit",
             "status": "dry_run",
@@ -76,9 +79,14 @@ class CommitCommand(BaseCommand):
             return {"command": "commit", "status": "error", "message": commit_result["stderr"]}
 
         lines = commit_result["stdout"].splitlines()
+        if lines:
+            first_line = lines[0]
+        else:
+            first_line = ""
+
         return {
             "command": "commit",
             "status": "ok",
             "message": message,
-            "output": lines[0] if lines else "",
+            "output": first_line,
         }

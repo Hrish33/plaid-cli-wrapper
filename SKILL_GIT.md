@@ -65,9 +65,9 @@ untracked_files:
 Remove untracked files. Requires `--dry-run`, `--force`, or `--yes`. Both `--force` and `--yes` trigger the confirmation prompt.
 
 ```
-gitwrap clean --dry-run
-gitwrap clean --force
-gitwrap clean --yes       # alias for --force
+gitwrap clean --dry-run   # preview only
+gitwrap clean --yes       # skip prompt, delete immediately
+gitwrap clean --force     # Pokemon confirmation, then delete
 ```
 
 Output (`dry_run`):

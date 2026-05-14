@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class BaseCommand(ABC):
-    """Abstract base for all git commands.
+    """Abstract base for all service commands.
 
     Each concrete command implements run() with its own logic. The
     execute() entrypoint is what __main__ calls — it exists so subclasses
@@ -12,7 +12,7 @@ class BaseCommand(ABC):
 
     def __init__(self, service):
         """Args:
-            service: A GitService instance used to run git subcommands.
+            service: A service instance (e.g. GitService) used to run subcommands.
         """
         self.service = service
 

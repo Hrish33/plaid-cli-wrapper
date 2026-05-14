@@ -1,5 +1,5 @@
-from .base_command import BaseCommand
-from ....confirm import request_confirmation
+from ....core.base_command import BaseCommand
+from ....utils.confirm import request_confirmation
 
 
 class PushCommand(BaseCommand):

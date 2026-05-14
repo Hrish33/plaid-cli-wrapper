@@ -3,7 +3,7 @@
 
 from unittest.mock import MagicMock, call, patch
 from gitwrap.services.git.commands.commit import CommitCommand
-from gitwrap.confirm import POKEMON
+from gitwrap.utils.confirm import POKEMON
 
 
 def make_service(stdout="", exit_code=0, stderr=""):

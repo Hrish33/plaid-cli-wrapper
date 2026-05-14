@@ -62,8 +62,8 @@ Remove untracked files. Requires `--dry-run`, `--force`, or `--yes`.
 
 ```bash
 gitwrap clean --dry-run   # show files that would be removed
+gitwrap clean --yes       # skip prompt, delete immediately
 gitwrap clean --force     # confirm with Pokemon word, then delete
-gitwrap clean --yes       # alias for --force
 ```
 
 ```yaml
@@ -189,15 +189,21 @@ flowchart TD
 ```mermaid
 flowchart LR
     CLI["__main__.py — argparse + routing"]
-    CONFIRM["confirm.py — Pokemon prompt"]
-    OUTPUT["output.py — YAML formatter"]
 
+    subgraph UTILS["utils/"]
+        CONFIRM["confirm.py — Pokemon prompt"]
+        OUTPUT["output.py — YAML formatter"]
+    end
+
+    subgraph CORE["core/"]
+        BASESVC["base_service.py — BaseService"]
+        BASECMD["base_command.py — BaseCommand"]
+    end
+
+    CLI --> UTILS
     CLI --> CMD
-    CLI --> CONFIRM
-    CLI --> OUTPUT
 
     subgraph CMD["services/git/commands/"]
-        BASE["base_command.py"]
         S["status.py"]
         CL["clean.py"]
         R["reset.py"]
@@ -205,20 +211,21 @@ flowchart LR
         P["push.py"]
     end
 
-    CMD --> SVC
+    CMD --> CORE
+    CMD --> UTILS
 
-    subgraph SVC["services/"]
-        GIT["git/service.py — GitService"]
-        BASESVC["base_service.py — BaseService — subprocess runner"]
-        GIT --> BASESVC
+    subgraph SVC["services/git/"]
+        GIT["service.py — GitService"]
     end
 
-    BASESVC --> GIT_BIN["git binary"]
+    CMD --> SVC
+    GIT --> BASESVC
+    GIT --> GIT_BIN["git binary"]
 ```
 
-Adding a new command: subclass `BaseCommand` in `services/git/commands/`, register in `__main__.py`.
+Adding a new command: subclass `BaseCommand` from `core/base_command.py` in `services/git/commands/`, register in `__main__.py`.
 
-Adding a new service (e.g. docker): subclass `BaseService` in `services/docker/`, wire up a `build_docker_parser()` in `__main__.py`, and add a `dockerwrap` entry point in `pyproject.toml`. The binary name determines which service is loaded — `gitwrap` → git, `dockerwrap` → docker, `kubewrap` → kubectl.
+Adding a new service (e.g. docker): subclass `BaseService` from `core/base_service.py` in `services/docker/`, wire up a `build_docker_parser()` in `__main__.py`, and add a `dockerwrap` entry point in `pyproject.toml`. The binary name determines which service is loaded — `gitwrap` → git, `dockerwrap` → docker, `kubewrap` → kubectl.
 
 ---
 

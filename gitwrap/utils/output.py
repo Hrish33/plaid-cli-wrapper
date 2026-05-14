@@ -9,3 +9,4 @@ def render(result: dict) -> str:
     escaped as \\uXXXX sequences in the output.
     """
     return yaml.dump(result, default_flow_style=False, sort_keys=False, allow_unicode=True)
+

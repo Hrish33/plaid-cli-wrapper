@@ -2,7 +2,7 @@
 # Run one:      pytest tests/unit/test_output.py::test_render_returns_valid_yaml -v
 
 import yaml
-from gitwrap.output import render
+from gitwrap.utils.output import render
 
 
 def test_render_returns_valid_yaml():

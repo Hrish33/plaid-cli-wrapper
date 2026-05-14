@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 
-from .output import render
+from .utils.output import render
 
 
 def detect_service() -> str:
@@ -32,8 +32,8 @@ def build_git_parser(subparsers):
 
     clean_parser = subparsers.add_parser("clean", help="Remove untracked files")
     clean_parser.add_argument("--dry-run", action="store_true", help="Show what would be removed")
-    clean_parser.add_argument("--force", action="store_true", help="Actually remove files (with confirmation)")
-    clean_parser.add_argument("--yes", dest="force", action="store_true", help="Actually remove files (alias for --force)")
+    clean_parser.add_argument("--force", action="store_true", help="Actually remove files (with Pokemon confirmation)")
+    clean_parser.add_argument("--yes", action="store_true", help="Actually remove files (skip prompt)")
 
     reset_parser = subparsers.add_parser("reset", help="Reset working tree to HEAD")
     reset_parser.add_argument("--dry-run", action="store_true", help="Show what would be reset")
@@ -67,8 +67,10 @@ SERVICE_BUILDERS = {
 
 
 def main():
+    # Determine which service to load based on the binary name (gitwrap/dockerwrap/kubewrap)
     service_name = detect_service()
 
+    # Services not yet implemented return a coming_soon stub and exit cleanly
     if service_name in STUBS:
         print(render({"service": service_name, "status": "coming_soon", "message": f"hey, this is the {service_name} wrapper — not implemented yet"}), end="")
         sys.exit(0)
@@ -80,14 +82,17 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # Build the subcommand parsers and get back the service instance + command map
     service, commands = SERVICE_BUILDERS[service_name](subparsers)
 
     args = parser.parse_args()
 
+    # Instantiate the right command class and run it
     command = commands[args.command](service)
     result = command.execute(args)
     print(render(result), end="")
 
+    # Non-zero exit for error and aborted so callers can detect failure
     if result.get("status") in ("error", "aborted"):
         sys.exit(1)
 

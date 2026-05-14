@@ -1,4 +1,4 @@
-from .base_command import BaseCommand
+from ....core.base_command import BaseCommand
 
 # Maps git's single-character porcelain state codes to human-readable strings.
 STATE_MAP = {
@@ -70,8 +70,17 @@ class StatusCommand(BaseCommand):
         """
         ahead = self.service.run_git("rev-list", "--count", "@{u}..HEAD")
         behind = self.service.run_git("rev-list", "--count", "HEAD..@{u}")
-        unpushed = int(ahead["stdout"]) if ahead["exit_code"] == 0 else None
-        unpulled = int(behind["stdout"]) if behind["exit_code"] == 0 else None
+
+        if ahead["exit_code"] == 0:
+            unpushed = int(ahead["stdout"])
+        else:
+            unpushed = None
+
+        if behind["exit_code"] == 0:
+            unpulled = int(behind["stdout"])
+        else:
+            unpulled = None
+
         return unpushed, unpulled
 
     def _local_commits(self, unpushed):
@@ -85,7 +94,9 @@ class StatusCommand(BaseCommand):
 
         commits = []
         for line in log["stdout"].splitlines():
-            hash_, _, message = line.partition(" ")
+            parts = line.split(" ", 1)
+            hash_ = parts[0]
+            message = parts[1] if len(parts) > 1 else ""
             files = self._commit_files(hash_)
             commits.append({"hash": hash_[:7], "message": message, "files": files})
         return commits
@@ -117,7 +128,9 @@ class StatusCommand(BaseCommand):
         for line in result["stdout"].splitlines():
             if not line.strip():
                 continue
-            x, y, path = line[0], line[1], line[3:].strip()
+            x = line[0]
+            y = line[1]
+            path = line[3:].strip()
             if x == "?" and y == "?":
                 untracked.append(path)
             else:
