@@ -17,7 +17,8 @@ class ResetCommand(BaseCommand):
     def register(cls, subparsers):
         p = subparsers.add_parser("reset", help="Reset working tree to HEAD")
         p.add_argument("--dry-run", action="store_true", help="Show what would be reset")
-        p.add_argument("--force", action="store_true", help="Actually reset to HEAD")
+        p.add_argument("--force", action="store_true", help="Actually reset to HEAD (with Pokemon confirmation)")
+        p.add_argument("--yes", action="store_true", help="Actually reset to HEAD (skip prompt)")
 
     def __init__(self, service, prompt_fn=input):
         """Args:
@@ -28,16 +29,20 @@ class ResetCommand(BaseCommand):
         self.prompt_fn = prompt_fn
 
     def run(self, args) -> dict:
-        """Route to dry-run or confirmed execution based on flags."""
-        if not args.force and not args.dry_run:
+        """Route to dry-run, prompt-skipped, or confirmed execution based on flags."""
+        yes = getattr(args, "yes", False)
+        if not args.force and not args.dry_run and not yes:
             return {
                 "command": "reset",
                 "status": "error",
-                "message": "destructive command requires --force or --dry-run",
+                "message": "destructive command requires --force, --yes, or --dry-run",
             }
 
         if args.dry_run:
             return self._dry_run()
+
+        if yes:
+            return self._run()
 
         confirmed, word, typed = request_confirmation("Reset working tree to HEAD", self.prompt_fn)
         if not confirmed:

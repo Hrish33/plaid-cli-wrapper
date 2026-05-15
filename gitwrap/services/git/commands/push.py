@@ -19,7 +19,8 @@ class PushCommand(BaseCommand):
     def register(cls, subparsers):
         p = subparsers.add_parser("push", help="Push to remote")
         p.add_argument("--dry-run", action="store_true", help="Simulate push without sending")
-        p.add_argument("--force", action="store_true", help="Force push")
+        p.add_argument("--force", action="store_true", help="Force push (with Pokemon confirmation)")
+        p.add_argument("--yes", action="store_true", help="Push immediately (skip prompt)")
 
     def __init__(self, service, prompt_fn=input):
         """Args:
@@ -30,17 +31,19 @@ class PushCommand(BaseCommand):
         self.prompt_fn = prompt_fn
 
     def run(self, args) -> dict:
-        """Route to dry-run or confirmed push based on flags."""
+        """Route to dry-run, prompt-skipped, or confirmed push based on flags."""
         if args.dry_run:
             return self._dry_run()
 
-        confirmed, word, typed = request_confirmation("Push to remote", self.prompt_fn)
-        if not confirmed:
-            return {
-                "command": "push",
-                "status": "aborted",
-                "message": f"expected '{word.upper()}', got '{typed.upper()}' — push cancelled",
-            }
+        yes = getattr(args, "yes", False)
+        if not yes:
+            confirmed, word, typed = request_confirmation("Push to remote", self.prompt_fn)
+            if not confirmed:
+                return {
+                    "command": "push",
+                    "status": "aborted",
+                    "message": f"expected '{word.upper()}', got '{typed.upper()}' — push cancelled",
+                }
 
         git_args = ["push"]
         if args.force:

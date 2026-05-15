@@ -56,11 +56,20 @@ def test_reset_parser_dry_run():
     args = make_subparsers(ResetCommand).parse_args(["reset", "--dry-run"])
     assert args.dry_run is True
     assert args.force is False
+    assert args.yes is False
 
 
 def test_reset_parser_force():
     args = make_subparsers(ResetCommand).parse_args(["reset", "--force"])
     assert args.force is True
+    assert args.dry_run is False
+    assert args.yes is False
+
+
+def test_reset_parser_yes():
+    args = make_subparsers(ResetCommand).parse_args(["reset", "--yes"])
+    assert args.yes is True
+    assert args.force is False
     assert args.dry_run is False
 
 
@@ -71,6 +80,7 @@ def test_commit_parser_message():
     assert args.message == "my message"
     assert args.dry_run is False
     assert args.force is False
+    assert args.yes is False
 
 
 def test_commit_parser_dry_run():
@@ -83,6 +93,14 @@ def test_commit_parser_force():
     args = make_subparsers(CommitCommand).parse_args(["commit", "-m", "msg", "--force"])
     assert args.force is True
     assert args.dry_run is False
+    assert args.yes is False
+
+
+def test_commit_parser_yes():
+    args = make_subparsers(CommitCommand).parse_args(["commit", "-m", "msg", "--yes"])
+    assert args.yes is True
+    assert args.force is False
+    assert args.dry_run is False
 
 
 # --- push ---
@@ -91,6 +109,7 @@ def test_push_parser_defaults():
     args = make_subparsers(PushCommand).parse_args(["push"])
     assert args.dry_run is False
     assert args.force is False
+    assert args.yes is False
 
 
 def test_push_parser_dry_run():
@@ -102,4 +121,12 @@ def test_push_parser_dry_run():
 def test_push_parser_force():
     args = make_subparsers(PushCommand).parse_args(["push", "--force"])
     assert args.force is True
+    assert args.dry_run is False
+    assert args.yes is False
+
+
+def test_push_parser_yes():
+    args = make_subparsers(PushCommand).parse_args(["push", "--yes"])
+    assert args.yes is True
+    assert args.force is False
     assert args.dry_run is False

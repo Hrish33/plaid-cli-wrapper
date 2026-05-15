@@ -19,7 +19,8 @@ class CommitCommand(BaseCommand):
         p = subparsers.add_parser("commit", help="Stage all changes and commit")
         p.add_argument("-m", dest="message", help="Commit message")
         p.add_argument("--dry-run", action="store_true", help="Show what would be committed")
-        p.add_argument("--force", action="store_true", help="Actually stage and commit")
+        p.add_argument("--force", action="store_true", help="Actually stage and commit (with Pokemon confirmation)")
+        p.add_argument("--yes", action="store_true", help="Actually stage and commit (skip prompt)")
 
     def __init__(self, service, prompt_fn=input):
         """Args:
@@ -38,15 +39,19 @@ class CommitCommand(BaseCommand):
                 "message": "commit message required — use -m 'your message'",
             }
 
-        if not args.force and not args.dry_run:
+        yes = getattr(args, "yes", False)
+        if not args.force and not args.dry_run and not yes:
             return {
                 "command": "commit",
                 "status": "error",
-                "message": "requires --force or --dry-run",
+                "message": "requires --force, --yes, or --dry-run",
             }
 
         if args.dry_run:
             return self._dry_run()
+
+        if yes:
+            return self._run(args.message)
 
         confirmed, word, typed = request_confirmation("Stage and commit all changes", self.prompt_fn)
         if not confirmed:

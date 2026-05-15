@@ -12,10 +12,11 @@ def make_service(stdout="", exit_code=0, stderr=""):
     return service
 
 
-def make_args(force=False, dry_run=False):
+def make_args(force=False, dry_run=False, yes=False):
     args = MagicMock()
     args.force = force
     args.dry_run = dry_run
+    args.yes = yes
     return args
 
 
