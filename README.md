@@ -79,10 +79,11 @@ message: 2 file(s) would be removed
 
 ### reset
 
-Reset tracked files to HEAD. Requires `--dry-run` or `--force`.
+Reset tracked files to HEAD. Requires `--dry-run`, `--force`, or `--yes`.
 
 ```bash
 gitwrap reset --dry-run   # show files that would be reset
+gitwrap reset --yes       # skip prompt, reset immediately
 gitwrap reset --force     # confirm with Pokemon word, then reset
 ```
 
@@ -99,11 +100,12 @@ message: 1 file(s) would be reset to HEAD
 
 ### commit
 
-Stage all changes (`git add .`) and commit. Requires `-m` and either `--dry-run` or `--force`.
+Stage all changes (`git add .`) and commit. Requires `-m` and either `--dry-run`, `--force`, or `--yes`.
 
 ```bash
 gitwrap commit -m "your message" --dry-run   # show what would be staged and committed
-gitwrap commit -m "your message" --force     # confirm with Pokemon word, then stage and commit
+gitwrap commit -m "your message" --yes       # skip prompt, commit immediately
+gitwrap commit -m "your message" --force     # confirm with Pokemon word, then commit
 ```
 
 ```yaml
@@ -117,11 +119,12 @@ output: '[main abc1234] your message'
 
 ### push
 
-Push to remote. Always requires Pokemon confirmation unless `--dry-run`.
+Push to remote. Requires Pokemon confirmation unless `--dry-run` or `--yes`.
 
 ```bash
-gitwrap push              # confirm with Pokemon word, then push
 gitwrap push --dry-run    # simulate push without sending anything
+gitwrap push --yes        # skip prompt, push immediately
+gitwrap push              # confirm with Pokemon word, then push
 gitwrap push --force      # confirm with Pokemon word, then force push
 ```
 
@@ -223,7 +226,7 @@ flowchart LR
     GIT --> GIT_BIN["git binary"]
 ```
 
-Adding a new command: subclass `BaseCommand` from `core/base_command.py` in `services/git/commands/`, register in `__main__.py`.
+Adding a new command: create a file in `services/git/commands/`, subclass `BaseCommand` from `core/base_command.py`, decorate with `@command("name")`, and add a `register(subparsers)` classmethod. It is auto-discovered — no changes to `__main__.py` needed.
 
 Adding a new service (e.g. docker): subclass `BaseService` from `core/base_service.py` in `services/docker/`, wire up a `build_docker_parser()` in `__main__.py`, and add a `dockerwrap` entry point in `pyproject.toml`. The binary name determines which service is loaded — `gitwrap` → git, `dockerwrap` → docker, `kubewrap` → kubectl.
 

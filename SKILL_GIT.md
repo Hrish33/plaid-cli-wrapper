@@ -62,7 +62,7 @@ untracked_files:
 ---
 
 ### clean
-Remove untracked files. Requires `--dry-run`, `--force`, or `--yes`. Both `--force` and `--yes` trigger the confirmation prompt.
+Remove untracked files. Requires `--dry-run`, `--yes`, or `--force`.
 
 ```
 gitwrap clean --dry-run   # preview only
@@ -91,11 +91,12 @@ message: 1 file(s) removed
 ---
 
 ### reset
-Reset tracked files to HEAD. Requires `--dry-run` or `--force`. `--force` triggers confirmation prompt.
+Reset tracked files to HEAD. Requires `--dry-run`, `--yes`, or `--force`.
 
 ```
-gitwrap reset --dry-run
-gitwrap reset --force
+gitwrap reset --dry-run   # preview only
+gitwrap reset --yes       # skip prompt, reset immediately
+gitwrap reset --force     # Pokemon confirmation, then reset
 ```
 
 Output (`dry_run`):
@@ -111,11 +112,12 @@ message: 1 file(s) would be reset to HEAD
 ---
 
 ### commit
-Stage all changes and commit. Requires `-m` and `--dry-run` or `--force`. `--force` triggers confirmation prompt.
+Stage all changes and commit. Requires `-m` and `--dry-run`, `--yes`, or `--force`.
 
 ```
-gitwrap commit -m "message" --dry-run
-gitwrap commit -m "message" --force
+gitwrap commit -m "message" --dry-run   # preview only
+gitwrap commit -m "message" --yes       # skip prompt, commit immediately
+gitwrap commit -m "message" --force     # Pokemon confirmation, then commit
 ```
 
 Output (`dry_run`):
@@ -138,12 +140,13 @@ output: "[main abc1234] your commit message"
 ---
 
 ### push
-Push to remote. Always triggers confirmation prompt unless `--dry-run`.
+Push to remote. Requires Pokemon confirmation unless `--dry-run` or `--yes`.
 
 ```
-gitwrap push
-gitwrap push --dry-run
-gitwrap push --force
+gitwrap push --dry-run    # preview only
+gitwrap push --yes        # skip prompt, push immediately
+gitwrap push              # Pokemon confirmation, then push
+gitwrap push --force      # Pokemon confirmation, then force push
 ```
 
 Output (`ok`):
